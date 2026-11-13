@@ -1,0 +1,33 @@
+appId: io.github.houseelves.elfdeskide
+productName: Elf Desk
+artifactName: elf-desk-${version}-${arch}.${ext}
+copyright: Copyright © 2026 Phillip Krüger
+electronDist: ../node_modules/electron/dist
+electronVersion: 44.9.1
+asar: false
+nodeGypRebuild: false
+npmRebuild: false
+directories:
+  buildResources: resources
+files:
+  - src-gen
+  - lib
+  - package.json
+  - "!**node_modules/electron/**"
+extraResources:
+  - from: ../plugins
+    to: app/plugins
+linux:
+  category: Development
+  target: [AppImage, deb, rpm]
+  executableName: elf-desk
+  maintainer: Phillip Krüger
+  synopsis: The Elf Desk as a desktop app
+mac:
+  category: public.app-category.developer-tools
+  target: [dmg]
+win:
+  target: [nsis]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

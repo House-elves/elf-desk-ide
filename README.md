@@ -22,3 +22,13 @@ npm start
 ```
 
 The desk has to be running (`house-elves start`).
+
+## Installers
+
+```
+npm run package
+```
+
+builds `electron-app/dist/elf-desk-<version>-*.AppImage`, `.deb` and `.rpm` on Linux (the rpm needs `rpm-build`),
+a `.dmg` on macOS and an installer `.exe` on Windows. The Build workflow makes all of them on each push to main, as
+the run's artifacts. They aren't signed yet, so macOS and Windows warn before opening them.

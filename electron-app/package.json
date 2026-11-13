@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "electron-app",
+  "name": "elf-desk",
   "productName": "Elf Desk",
   "version": "0.1.0",
   "main": "lib/backend/electron-main.js",
@@ -53,13 +53,17 @@
   "scripts": {
     "bundle": "theia build --mode development",
     "rebuild": "theia rebuild:electron --cacheRoot ..",
-    "start": "theia start --plugins=local-dir:../plugins",
-    "package": "electron-builder",
-    "download:plugins": "theia download:plugins --rate-limit=15 --parallel=false"
+    "start": "theia start",
+    "package": "npm run bundle:production && electron-builder --publish never",
+    "download:plugins": "theia download:plugins --rate-limit=15 --parallel=false",
+    "bundle:production": "theia build --mode production"
   },
   "theiaPluginsDir": "../plugins",
   "theiaPlugins": {
     "vscode.git": "https://open-vsx.org/api/vscode/git/1.95.3/file/vscode.git-1.95.3.vsix",
     "vscode.git-base": "https://open-vsx.org/api/vscode/git-base/1.95.3/file/vscode.git-base-1.95.3.vsix"
-  }
+  },
+  "description": "The Elf Desk as a desktop app, built on Eclipse Theia",
+  "author": "Phillip Kr\u00fcger",
+  "homepage": "https://github.com/House-elves/elf-desk-ide"
 }
