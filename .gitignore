@@ -1,0 +1,10 @@
+node_modules/
+lib/
+electron-app/src-gen/
+electron-app/gen-webpack*.js
+electron-app/webpack.config.js
+electron-app/dist/
+electron-app/.browser_modules/
+*.log
+build.log
+run.log

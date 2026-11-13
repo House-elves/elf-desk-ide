@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "elf-desk-ide",
+  "engines": { "node": ">=20" },
+  "workspaces": ["elf-desk-extension", "electron-app"],
+  "scripts": {
+    "build": "npm run -w elf-desk-extension build && npm run -w electron-app bundle",
+    "start": "npm run -w electron-app start",
+    "package": "npm run -w electron-app package"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3",
+    "rimraf": "^5.0.0"
+  }
+}
