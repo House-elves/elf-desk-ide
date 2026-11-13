@@ -106,16 +106,16 @@ export class ElvesContribution extends AbstractViewContribution<ElvesViewWidget>
         try {
             await this.main.refresh(t?.elf ?? id);
         } catch (e) {
-            this.messages.error(`${t?.label ?? id} didn't refresh: ${message(e)}`);
+            this.messages.error(plain(`${t?.label ?? id} didn't refresh: ${message(e)}`));
         }
     }
 
     protected async refreshAll(): Promise<void> {
         try {
             const problems = await this.main.refreshAll();
-            if (problems.length) this.messages.warn(`Not everything refreshed. ${problems.join(' ')}`);
+            if (problems.length) this.messages.warn(plain(`Not everything refreshed. ${problems.join(' ')}`));
         } catch (e) {
-            this.messages.error(`Couldn't refresh: ${message(e)}`);
+            this.messages.error(plain(`Couldn't refresh: ${message(e)}`));
         }
     }
 
@@ -198,12 +198,20 @@ export class ElvesContribution extends AbstractViewContribution<ElvesViewWidget>
         for (const t of s.tabs) {
             const why = s.attention[t.elf];
             if (!why || before[t.elf] === why) continue;
-            this.messages.info(`${t.label}: ${why}`, `Open ${t.label}`).then(a => { if (a) this.openPage(t.id); });
+            this.messages.info(plain(`${t.label}: ${why}`), `Open ${t.label}`).then(a => { if (a) this.openPage(t.id); });
         }
     }
 }
 
 export const noop = Disposable.NULL;
+
+/**
+ * Notifications render Markdown, and what an elf says it needs you for can come from a mail or a chat message: it's
+ * shown as text, so a link in it (a command: one included) is never a link.
+ */
+export function plain(text: string): string {
+    return text.replace(/[\\`*_{}\[\]()<>#+!|~-]/g, c => `\\${c}`).slice(0, 500);
+}
 
 function message(e: unknown): string {
     return e instanceof Error ? e.message : String(e);

@@ -152,7 +152,7 @@ export class ElfDeskMainImpl implements ElfDeskMain, ElectronMainApplicationCont
             } catch {
                 return; // the page went (it navigated, or reloads): did-finish-load starts again
             }
-            if (next) this.publish(next);
+            if (next) this.publish(checked(next));
             else if (run === this.watching) this.publish({ ...this.current, connection: 'connecting' });
         }
     }
@@ -276,6 +276,33 @@ export class ElfDeskMainImpl implements ElfDeskMain, ElectronMainApplicationCont
             <p>Start it with <code>house-elves start</code>, then reload this tab.</p></body>`;
         wc.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page));
     }
+}
+
+/**
+ * The page's state, as data of the expected shape only: the page shows what elves wrote, some of it from mail and
+ * chat, so nothing else gets through to the IDE.
+ */
+function checked(raw: unknown): DeskState {
+    const r = (raw ?? {}) as Record<string, unknown>;
+    const text = (v: unknown, max: number) => typeof v === 'string' ? v.replace(/[\u0000-\u001f]/g, ' ').slice(0, max) : '';
+    const list = (v: unknown, max: number) => Array.isArray(v) ? v.slice(0, 200).map(x => text(x, max)).filter(Boolean) : [];
+    const connection = ['connecting', 'open', 'lost'].includes(r.connection as string) ? r.connection as DeskState['connection'] : 'connecting';
+    const tabs = (Array.isArray(r.tabs) ? r.tabs : []).slice(0, 100).flatMap((t: Record<string, unknown>) => {
+        const id = text(t?.id, 100), elf = text(t?.elf, 100);
+        if (!KEY.test(id) || !KEY.test(elf)) return [];
+        return [{
+            id, elf, label: text(t.label, 60) || elf, card: t.card === true,
+            refresh: typeof t.refresh === 'string' && /^[A-Za-z0-9._-]{1,60}$/.test(t.refresh) ? t.refresh : null,
+            missing: list(t.missing, 100)
+        }];
+    });
+    const attention: Record<string, string> = {};
+    if (r.attention && typeof r.attention === 'object') {
+        for (const [k, v] of Object.entries(r.attention as Record<string, unknown>).slice(0, 100)) {
+            if (KEY.test(k) && text(v, 300)) attention[k] = text(v, 300);
+        }
+    }
+    return { connection, tabs, attention, running: list(r.running, 200), failed: list(r.failed, 200) };
 }
 
 function safeOrigin(url: string): string | undefined {
