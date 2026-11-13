@@ -1,45 +1,46 @@
 import { inject, injectable } from '@theia/core/shared/inversify';
-import { AbstractViewContribution, FrontendApplication, FrontendApplicationContribution, QuickInputService, QuickPickItem } from '@theia/core/lib/browser/index.js';
-import { Command, CommandRegistry } from '@theia/core/lib/common/index.js';
+import { ApplicationShell, FrontendApplicationContribution, KeybindingContribution, KeybindingRegistry, QuickInputService, QuickPickItem } from '@theia/core/lib/browser/index.js';
+import { Command, CommandContribution, CommandRegistry } from '@theia/core/lib/common/index.js';
 import { MessageService } from '@theia/core/lib/common/message-service.js';
 import URI from '@theia/core/lib/common/uri.js';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service.js';
 import { DeskSession, ElfDeskMain } from '../common/elf-desk-protocol.js';
-import { DeskWidget } from './desk-widget.js';
+import { DeskPageWidget } from './desk-widget.js';
+import { ElvesContribution } from './elves-contribution.js';
 
 export namespace ElfDeskCommands {
     const category = 'Elf Desk';
+    export const DASHBOARD: Command = { id: 'elfDesk.toggle', category, label: 'Show the Dashboard' };
     export const OPEN_SESSION: Command = { id: 'elfDesk.openSession', category, label: 'Open a Session as the Workspace…' };
-    export const RELOAD: Command = { id: 'elfDesk.reload', category, label: 'Reload the Desk' };
+    export const RELOAD: Command = { id: 'elfDesk.reload', category, label: 'Reload This Desk Tab' };
 }
 
 @injectable()
-export class DeskContribution extends AbstractViewContribution<DeskWidget> implements FrontendApplicationContribution {
+export class DeskContribution implements CommandContribution, KeybindingContribution, FrontendApplicationContribution {
 
     @inject(ElfDeskMain) protected readonly main: ElfDeskMain;
     @inject(QuickInputService) protected readonly quickInput: QuickInputService;
     @inject(WorkspaceService) protected readonly workspace: WorkspaceService;
     @inject(MessageService) protected readonly messages: MessageService;
+    @inject(ApplicationShell) protected readonly shell: ApplicationShell;
+    @inject(ElvesContribution) protected readonly elves: ElvesContribution;
 
-    constructor() {
-        super({
-            widgetId: DeskWidget.ID,
-            widgetName: DeskWidget.LABEL,
-            defaultWidgetOptions: { area: 'main', rank: -1000 },
-            toggleCommandId: 'elfDesk.toggle',
-            toggleKeybinding: 'ctrlcmd+shift+d'
+    /** The dashboard is the home page: it opens when nothing else is open. */
+    async onDidInitializeLayout(): Promise<void> {
+        if (!this.shell.getWidgets('main').length) await this.elves.openPage('desk');
+    }
+
+    registerCommands(commands: CommandRegistry): void {
+        commands.registerCommand(ElfDeskCommands.DASHBOARD, { execute: () => this.elves.openPage('desk') });
+        commands.registerCommand(ElfDeskCommands.OPEN_SESSION, { execute: () => this.pickSession() });
+        commands.registerCommand(ElfDeskCommands.RELOAD, {
+            execute: () => (this.shell.currentWidget as DeskPageWidget).reload(),
+            isEnabled: () => this.shell.currentWidget instanceof DeskPageWidget
         });
     }
 
-    /** The desk is the home page: open it when nothing else is. */
-    async onDidInitializeLayout(app: FrontendApplication): Promise<void> {
-        await this.openView({ activate: true, reveal: true });
-    }
-
-    override registerCommands(commands: CommandRegistry): void {
-        super.registerCommands(commands);
-        commands.registerCommand(ElfDeskCommands.OPEN_SESSION, { execute: () => this.pickSession() });
-        commands.registerCommand(ElfDeskCommands.RELOAD, { execute: () => this.main.reload() });
+    registerKeybindings(keybindings: KeybindingRegistry): void {
+        keybindings.registerKeybinding({ command: ElfDeskCommands.DASHBOARD.id, keybinding: 'ctrlcmd+shift+d' });
     }
 
     protected async pickSession(): Promise<void> {

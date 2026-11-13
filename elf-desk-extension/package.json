@@ -15,7 +15,8 @@
   },
   "devDependencies": {
     "typescript": "~5.6.3",
-    "rimraf": "^5.0.0"
+    "rimraf": "^5.0.0",
+    "@types/react": "^19.0.0"
   },
   "scripts": {
     "clean": "rimraf lib tsconfig.tsbuildinfo",
