@@ -8,6 +8,9 @@ import { DeskPageOptions, DeskPageWidget } from './desk-widget.js';
 import { ElvesContribution } from './elves-contribution.js';
 import { ElvesModel } from './elves-model.js';
 import { ElvesViewWidget } from './elves-view.js';
+import { GitHubContribution } from './github-contribution.js';
+import { GitHubViewWidget } from './github-view.js';
+import { TabBarToolbarContribution } from '@theia/core/lib/browser/shell/tab-bar-toolbar/index.js';
 import '../../src/browser/style/elves.css';
 
 export default new ContainerModule(bind => {
@@ -33,6 +36,15 @@ export default new ContainerModule(bind => {
     })).inSingletonScope();
     bindViewContribution(bind, ElvesContribution);
     bind(FrontendApplicationContribution).toService(ElvesContribution);
+
+    bind(GitHubViewWidget).toSelf().inSingletonScope();
+    bind(WidgetFactory).toDynamicValue(ctx => ({
+        id: GitHubViewWidget.ID,
+        createWidget: () => ctx.container.get(GitHubViewWidget)
+    })).inSingletonScope();
+    bindViewContribution(bind, GitHubContribution);
+    bind(FrontendApplicationContribution).toService(GitHubContribution);
+    bind(TabBarToolbarContribution).toService(GitHubContribution);
 
     bind(DeskContribution).toSelf().inSingletonScope();
     bind(CommandContribution).toService(DeskContribution);

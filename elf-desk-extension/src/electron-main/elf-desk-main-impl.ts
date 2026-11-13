@@ -31,6 +31,8 @@ export class ElfDeskMainImpl implements ElfDeskMain, ElectronMainApplicationCont
     protected signingIn = false;
     protected lastSignIn = 0;
     protected watching = 0;
+    /** A route to open a page at, asked for before its tab first showed. */
+    protected readonly pending = new Map<PageKey, string>();
 
     onStart(_app: ElectronMainApplication): void {
         const desk = new URL(deskUrl());
@@ -67,6 +69,42 @@ export class ElfDeskMainImpl implements ElfDeskMain, ElectronMainApplicationCont
 
     async refreshAll(): Promise<string[]> {
         return (await this.hostCall('window.elfDeskHost.refreshAll()')) ?? [];
+    }
+
+    async elfRead(elf: string, folder: string, files: string[]): Promise<Record<string, string | null>> {
+        if (!KEY.test(elf) || !/^[a-z0-9][a-z0-9-]{0,40}$/.test(folder) || !Array.isArray(files) || files.length > 50
+            || !files.every(f => typeof f === 'string' && /^[A-Za-z0-9][A-Za-z0-9._#-]{0,200}$/.test(f))) {
+            throw new Error('Not something an elf has');
+        }
+        const answer = await this.hostCall<{ files?: Record<string, unknown> }>(
+            `window.elfDeskHost.read(${JSON.stringify(elf)}, ${JSON.stringify(folder)}, ${JSON.stringify(files)})`);
+        const r = answer?.files ?? {};
+        const out: Record<string, string | null> = {};
+        for (const f of files) out[f] = typeof r?.[f] === 'string' ? r[f] as string : null;
+        return out;
+    }
+
+    async elfAct(elf: string, action: string, params: Record<string, string | number | boolean>): Promise<unknown> {
+        if (!KEY.test(elf) || !/^[a-z][a-z0-9-]{0,60}$/.test(action) || !params || typeof params !== 'object') {
+            throw new Error('Not one of its actions');
+        }
+        const clean: Record<string, string | number | boolean> = {};
+        for (const [k, v] of Object.entries(params)) {
+            if (/^[A-Za-z][A-Za-z0-9]{0,40}$/.test(k) && ['string', 'number', 'boolean'].includes(typeof v)) clean[k] = v;
+        }
+        return this.hostCall(`window.elfDeskHost.act(${JSON.stringify(elf)}, ${JSON.stringify(action)}, ${JSON.stringify(clean)})`);
+    }
+
+    async navigate(key: PageKey, route: string): Promise<void> {
+        if (!KEY.test(key) || !/^(?:[A-Za-z0-9._~-]|%[0-9A-Fa-f]{2})+(\/(?:[A-Za-z0-9._~-]|%[0-9A-Fa-f]{2})+)*$/.test(route)
+            || route.split('/').includes('..') || route.length > 600) return;
+        const hash = `#${key}/${route}`;
+        const view = this.pages.get(key);
+        if (view && !view.webContents.isDestroyed()) {
+            await view.webContents.executeJavaScript(`location.hash = ${JSON.stringify(hash)}`).catch(() => undefined);
+        } else {
+            this.pending.set(key, hash);
+        }
     }
 
     async show(key: PageKey, bounds: Bounds): Promise<void> {
@@ -201,7 +239,9 @@ export class ElfDeskMainImpl implements ElfDeskMain, ElectronMainApplicationCont
 
     /** The dashboard, or one elf's tab, without the desk's own bar of tabs: the IDE's tabs are those. */
     protected pageUrl(key: PageKey): string {
-        return key === 'desk' ? `${deskUrl()}/?embed` : `${deskUrl()}/?embed#${encodeURIComponent(key)}`;
+        const hash = this.pending.get(key);
+        this.pending.delete(key);
+        return key === 'desk' ? `${deskUrl()}/?embed` : `${deskUrl()}/?embed${hash ?? `#${encodeURIComponent(key)}`}`;
     }
 
     protected webPreferences(): Electron.WebPreferences {
@@ -302,7 +342,13 @@ function checked(raw: unknown): DeskState {
             if (KEY.test(k) && text(v, 300)) attention[k] = text(v, 300);
         }
     }
-    return { connection, tabs, attention, running: list(r.running, 200), failed: list(r.failed, 200) };
+    const changes: Record<string, number> = {};
+    if (r.changes && typeof r.changes === 'object') {
+        for (const [k, v] of Object.entries(r.changes as Record<string, unknown>).slice(0, 100)) {
+            if (KEY.test(k) && typeof v === 'number' && Number.isFinite(v)) changes[k] = v;
+        }
+    }
+    return { connection, tabs, attention, running: list(r.running, 200), failed: list(r.failed, 200), changes };
 }
 
 function safeOrigin(url: string): string | undefined {

@@ -23,3 +23,22 @@
     content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 6px; border-radius: 50%;
     background: var(--theia-charts-green, #4ec9b0); vertical-align: middle;
 }
+/* The GitHub side bar */
+.gh-lane-head { display: flex; align-items: center; gap: 4px; cursor: pointer; padding-left: 6px; }
+.gh-lane-head:hover { color: var(--theia-foreground); }
+.gh-lane-title { flex: 1; }
+.gh-count { font-weight: normal; text-transform: none; font-variant-numeric: tabular-nums; }
+.gh-item { padding-left: 6px; align-items: flex-start; }
+.gh-item .elves-text { padding-top: 1px; }
+.gh-twisty { width: 16px; flex: none; margin-top: 2px; }
+.gh-kind { flex: none; margin-top: 2px; color: var(--theia-descriptionForeground); }
+.gh-item.needs-you .gh-kind { color: var(--theia-charts-green, #4ec9b0); }
+.gh-ok, .gh-bad, .gh-wait { flex: none; margin-top: 2px; }
+.gh-ok { color: var(--theia-charts-green, #4ec9b0); }
+.gh-bad { color: var(--theia-errorForeground, #f14c4c); }
+.gh-wait { color: var(--theia-charts-yellow, #cca700); }
+.gh-files { padding-left: 28px; }
+.gh-file { padding-left: 6px; }
+.gh-stat { flex: none; font-size: 12px; font-variant-numeric: tabular-nums; }
+.gh-add { color: var(--theia-gitDecoration-addedResourceForeground, #81b88b); }
+.gh-del { color: var(--theia-gitDecoration-deletedResourceForeground, #c74e39); }

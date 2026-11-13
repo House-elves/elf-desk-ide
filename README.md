@@ -11,6 +11,11 @@ the desk in your browser, the runner and the elves stay as they are, and this ap
   - a **notification** when an elf starts to need you, with Open;
   - each elf as **its own tab** (with a green dot while it needs you), and the dashboard as the Desk tab
     (`Ctrl+Shift+D`). A link on a desk page to another elf opens that elf's tab.
+- **The GitHub side bar**: the GitHub elf's board as a tree. Its lanes (Needs my review, My PRs, Assigned issues,
+  Mentioned / involved), each PR or issue with its CI, approval and the agent's one line about it, and the ones
+  waiting on you marked. Click one for its page on the GitHub tab (the agent, and what posts, which the desk asks
+  you about there). Expand a PR for its changed files: each opens in the diff editor, its changed parts before and
+  after.
 - What's inside an elf's tab is still the elf's own page from the desk, in its own Electron view laid over the tab:
   the page itself, not framed, so the desk's frame and cookie protections stay as they are. It signs in with the
   one-time code, as `house-elves open` does. The menus, side bar and status bar get the desk's state from one more

@@ -41,10 +41,12 @@ export interface DeskState {
     /** "elf:command" of the runs going now */
     running: string[];
     failed: string[];
+    /** {elf: n}: goes up each time that elf's data changes. */
+    changes: Record<string, number>;
 }
 
 export namespace DeskState {
-    export const EMPTY: DeskState = { connection: 'connecting', tabs: [], attention: {}, running: [], failed: [] };
+    export const EMPTY: DeskState = { connection: 'connecting', tabs: [], attention: {}, running: [], failed: [], changes: {} };
 }
 
 /** The desk's pages: 'desk' is the dashboard, any other key an elf's tab (its id). */
@@ -67,6 +69,12 @@ export interface ElfDeskMain {
     refresh(elf: string): Promise<void>;
     /** What didn't refresh, and why. */
     refreshAll(): Promise<string[]>;
+    /** Shows a page of a desk tab: the part of its address after #<key>/ (thread/owner/repo/123 on GitHub's). */
+    navigate(key: PageKey, route: string): Promise<void>;
+    /** Files from an elf's data folder, {name: text}, as its tab may read them. What's in them is the elf's: untrusted. */
+    elfRead(elf: string, folder: string, files: string[]): Promise<Record<string, string | null>>;
+    /** One of an elf's actions that its elf.yaml says needn't ask; the desk refuses the others. */
+    elfAct(elf: string, action: string, params: Record<string, string | number | boolean>): Promise<unknown>;
     deskUrl(): Promise<string>;
     /** Sessions whose clone is on this machine, the latest first; archived ones left out. */
     sessions(): Promise<DeskSession[]>;
