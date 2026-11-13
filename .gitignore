@@ -8,3 +8,5 @@ electron-app/.browser_modules/
 *.log
 build.log
 run.log
+plugins/
+electron-app/gen-esbuild.*.mjs

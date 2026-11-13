@@ -7,7 +7,9 @@ the desk in your browser, the runner and the elves stay as they are, and this ap
   itself, not framed, so the desk's frame and cookie protections stay as they are. It signs in with the one-time code,
   as `house-elves open` does, and keeps its own cookie.
 - **Elf Desk: Open a Session as the Workspace…**: opens a Sessions chat's clone, with its files, changes and a terminal.
-- Theia's editor, file tree, search and terminal.
+- Theia's editor, file tree, search and terminal, and Source Control with diffs (VS Code's git extension, from
+  Open VSX). Git works once you trust the folder, when Theia asks.
+- Its settings are in `~/.elf-desk-ide`, apart from other Theia apps.
 
 ## Build and run
 
@@ -15,7 +17,7 @@ Needs Node 20+, and on Linux: `gcc-c++ make libsecret-devel libX11-devel libxkbf
 
 ```
 npm install
-npm run build
+npm run build   # also downloads the git extensions into plugins/
 npm start
 ```
 

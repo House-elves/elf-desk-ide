@@ -1,10 +1,15 @@
 {
   "private": true,
   "name": "elf-desk-ide",
-  "engines": { "node": ">=20" },
-  "workspaces": ["elf-desk-extension", "electron-app"],
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "elf-desk-extension",
+    "electron-app"
+  ],
   "scripts": {
-    "build": "npm run -w elf-desk-extension build && npm run -w electron-app bundle",
+    "build": "npm run -w elf-desk-extension build && npm run -w electron-app download:plugins && npm run -w electron-app bundle",
     "start": "npm run -w electron-app start",
     "package": "npm run -w electron-app package"
   },
