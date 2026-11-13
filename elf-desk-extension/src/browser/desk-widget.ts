@@ -66,10 +66,17 @@ export class DeskWidget extends BaseWidget {
         this.last = '';
         const tick = () => {
             const r = this.node.getBoundingClientRect();
-            const key = `${r.x},${r.y},${r.width},${r.height}`;
+            let height = r.height;
+            // Notifications sit at the bottom right: the desk stops above them while they show.
+            const toasts = visible(document.querySelector('.theia-notification-toasts'));
+            if (toasts && toasts.left < r.right && toasts.right > r.left && toasts.top < r.bottom) height = Math.max(0, toasts.top - r.y - 4);
+            // The desk is a native view on top of the page: Theia's menus, the command palette and dialogs would
+            // open behind it, so it steps aside while one is open.
+            const covered = OVERLAYS.some(sel => Array.from(document.querySelectorAll(sel)).some(e => visible(e)));
+            const key = covered ? 'covered' : `${r.x},${r.y},${r.width},${height}`;
             if (key !== this.last) {
                 this.last = key;
-                if (r.width > 0 && r.height > 0) this.main.show({ x: r.x, y: r.y, width: r.width, height: r.height });
+                if (!covered && r.width > 0 && height > 0) this.main.show({ x: r.x, y: r.y, width: r.width, height });
                 else this.main.hide();
             }
             this.timer = window.requestAnimationFrame(tick);
@@ -83,4 +90,16 @@ export class DeskWidget extends BaseWidget {
         this.last = '';
         this.main.hide();
     }
+}
+
+/** What Theia opens over the page. */
+const OVERLAYS = ['.lm-Menu', '.quick-input-widget', '.dialogOverlay', '.monaco-menu-container', '.theia-hover'];
+
+/** Its place, if it's showing. */
+function visible(e: Element | null): DOMRect | undefined {
+    if (!(e instanceof HTMLElement) || !e.isConnected) return undefined;
+    const r = e.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return undefined;
+    const style = getComputedStyle(e);
+    return style.display === 'none' || style.visibility === 'hidden' ? undefined : r;
 }
